@@ -17,18 +17,45 @@ A Model Context Protocol (MCP) server for web crawling and text extraction from 
 
 ## Installation
 
+### Using npx (Recommended)
+
 ```bash
+# Run directly without installation
+npx open-crawler-mcp-server
+```
+
+### Local Installation
+
+```bash
+npm install -g open-crawler-mcp-server
+```
+
+### Development Setup
+
+```bash
+git clone https://github.com/naoto24kawa/open-clawler-mcp-server.git
+cd open-clawler-mcp-server
 npm install
 npm run build
 ```
 
 ## Usage
 
-### Running the server
+### Running with npx
 
 ```bash
+npx open-crawler-mcp-server
+```
+
+### Running locally
+
+```bash
+# After global installation
+open-crawler-mcp-server
+
+# Or for development
 npm start
-# or for development
+# or
 npm run dev
 ```
 
