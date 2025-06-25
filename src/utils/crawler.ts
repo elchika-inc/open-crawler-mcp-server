@@ -1,17 +1,20 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { RobotsChecker } from './robots.js';
+import { ContentFormatter, OutputFormat } from './formatters.js';
 
 export interface CrawlResult {
   url: string;
   title: string;
   content: string;
+  format: OutputFormat;
   timestamp: string;
 }
 
 export interface CrawlOptions {
   selector?: string;
   textOnly?: boolean;
+  format?: OutputFormat;
 }
 
 export class WebCrawler {
@@ -21,7 +24,7 @@ export class WebCrawler {
   private readonly userAgent = 'OpenCrawlerMCP/1.0';
 
   async crawlPage(url: string, options: CrawlOptions = {}): Promise<CrawlResult> {
-    const { selector, textOnly = true } = options;
+    const { selector, textOnly = true, format = 'text' } = options;
 
     // Normalize URL to HTTPS if possible
     const normalizedUrl = this.normalizeUrl(url);
@@ -58,16 +61,14 @@ export class WebCrawler {
       // Extract title
       const title = $('title').text().trim() || 'No Title';
 
-      // Extract content based on selector
-      let content: string;
+      // Extract HTML content for processing
+      let htmlContent: string;
       if (selector) {
         const selectedElements = $(selector);
         if (selectedElements.length === 0) {
           throw new Error(`No elements found for selector: ${selector}`);
         }
-        content = textOnly 
-          ? selectedElements.text().trim()
-          : selectedElements.html() || '';
+        htmlContent = selectedElements.html() || '';
       } else {
         // Remove script and style elements
         $('script, style, nav, header, footer, aside').remove();
@@ -76,19 +77,21 @@ export class WebCrawler {
         const mainContent = $('main, article, .content, #content').first();
         const targetElement = mainContent.length > 0 ? mainContent : $('body');
         
-        content = textOnly
-          ? targetElement.text().replace(/\s+/g, ' ').trim()
-          : targetElement.html() || '';
+        htmlContent = targetElement.html() || '';
       }
 
-      if (!content) {
+      if (!htmlContent) {
         throw new Error('No content extracted from the page');
       }
+
+      // Convert content to requested format
+      const formattedContent = ContentFormatter.format(htmlContent, format, title);
 
       return {
         url: response.request.res.responseUrl || normalizedUrl,
         title,
-        content,
+        content: formattedContent.content,
+        format: formattedContent.format,
         timestamp: new Date().toISOString()
       };
 

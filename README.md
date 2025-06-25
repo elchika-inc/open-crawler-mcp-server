@@ -30,14 +30,6 @@ npx open-crawler-mcp-server
 npm install -g open-crawler-mcp-server
 ```
 
-### Development Setup
-
-```bash
-git clone https://github.com/naoto24kawa/open-clawler-mcp-server.git
-cd open-clawler-mcp-server
-npm install
-npm run build
-```
 
 ## Usage
 
@@ -52,11 +44,6 @@ npx open-crawler-mcp-server
 ```bash
 # After global installation
 open-crawler-mcp-server
-
-# Or for development
-npm start
-# or
-npm run dev
 ```
 
 ### Available Tools
@@ -101,6 +88,35 @@ Check if a URL is allowed to be crawled according to robots.txt.
 
 ## Configuration
 
+### MCP Client Configuration
+
+To use this server with Claude Desktop or other MCP clients, add the following configuration to your MCP client settings (e.g., `.mcp.json` or Claude Desktop configuration):
+
+```json
+{
+  "mcpServers": {
+    "open-crawler": {
+      "command": "npx",
+      "args": ["open-crawler-mcp-server"]
+    }
+  }
+}
+```
+
+For local development or global installation:
+
+```json
+{
+  "mcpServers": {
+    "open-crawler": {
+      "command": "open-crawler-mcp-server"
+    }
+  }
+}
+```
+
+### Server Settings
+
 The server automatically:
 - Respects robots.txt files
 - Applies rate limiting (minimum 1 second between requests)
@@ -126,21 +142,6 @@ All crawling operations are performed locally on the MCP server to minimize AI t
 - Rate limiting management
 - Error handling
 
-## Development
-
-```bash
-# Install dependencies
-npm install
-
-# Run in development mode
-npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
-```
 
 ## License
 

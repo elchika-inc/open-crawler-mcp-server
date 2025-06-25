@@ -1,9 +1,10 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { WebCrawler } from '../utils/crawler.js';
+import { OutputFormat } from '../utils/formatters.js';
 
 export const crawlPageTool: Tool = {
   name: 'crawl_page',
-  description: 'Extract text content from a web page (automatically checks robots.txt)',
+  description: 'Extract content from a web page in specified format (automatically checks robots.txt)',
   inputSchema: {
     type: 'object',
     properties: {
@@ -17,8 +18,14 @@ export const crawlPageTool: Tool = {
       },
       text_only: {
         type: 'boolean',
-        description: 'Whether to extract only text content (default: true)',
+        description: 'Whether to extract only text content (deprecated, use format instead)',
         default: true
+      },
+      format: {
+        type: 'string',
+        enum: ['text', 'markdown', 'xml', 'json'],
+        description: 'Output format for the content (default: text)',
+        default: 'text'
       }
     },
     required: ['url']
@@ -26,7 +33,7 @@ export const crawlPageTool: Tool = {
 };
 
 export async function handleCrawlPage(args: any): Promise<any> {
-  const { url, selector, text_only = true } = args;
+  const { url, selector, text_only = true, format = 'text' } = args;
   
   if (!url || typeof url !== 'string') {
     throw {
@@ -49,14 +56,22 @@ export async function handleCrawlPage(args: any): Promise<any> {
     };
   }
 
+  if (format && !['text', 'markdown', 'xml', 'json'].includes(format)) {
+    throw {
+      code: -32602,
+      message: 'Invalid parameters: format must be one of text, markdown, xml, json'
+    };
+  }
+
   try {
     const crawler = new WebCrawler();
-    const result = await crawler.crawlPage(url, { selector, textOnly: text_only });
+    const result = await crawler.crawlPage(url, { selector, textOnly: text_only, format: format as OutputFormat });
     
     return {
       url: result.url,
       title: result.title,
       content: result.content,
+      format: result.format,
       timestamp: result.timestamp
     };
   } catch (error) {
