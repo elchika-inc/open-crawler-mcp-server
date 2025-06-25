@@ -29,13 +29,13 @@
   ],
   "author": "naoto24kawa",
   "license": "MIT",
-  "homepage": "https://github.com/naoto24kawa/open-clawler-mcp-server#readme",
+  "homepage": "https://github.com/naoto24kawa/open-crawler-mcp-server#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/naoto24kawa/open-clawler-mcp-server.git"
+    "url": "git+https://github.com/naoto24kawa/open-crawler-mcp-server.git"
   },
   "bugs": {
-    "url": "https://github.com/naoto24kawa/open-clawler-mcp-server/issues"
+    "url": "https://github.com/naoto24kawa/open-crawler-mcp-server/issues"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
