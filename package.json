@@ -1,6 +1,6 @@
 {
   "name": "@elchika-inc/open-crawler-mcp-server",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Web crawler MCP server for extracting text content from web pages",
   "main": "dist/src/index.js",
   "type": "module",
@@ -17,7 +17,7 @@
     "test": "bun test",
     "clean": "rm -rf dist",
     "dev": "bun run src/index.ts",
-    "start": "node dist/index.js",
+    "start": "node dist/src/index.js",
     "npm:publish": "npm publish --access public",
     "prepublishOnly": "bun run clean && bun run build"
   },
