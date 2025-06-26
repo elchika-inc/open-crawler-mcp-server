@@ -104,3 +104,36 @@ Thumbs.db
 # Claude Code 
 .claude
 CLAUDE.md
+
+# MCP Server specific
+temp-repos/
+.crawl-cache/
+robots-cache/
+crawl-logs/
+debug.log
+mcp-server.log
+
+# Bun specific
+bun.lockb
+.bun/
+
+# Package manager lock files (keep bun.lock)
+package-lock.json
+yarn.lock
+
+# Documentation build outputs
+__docs__/build/
+docs/build/
+
+# Testing and development
+.env.development
+.env.production
+.env.staging
+
+# Additional TypeScript files
+*.tsbuildinfo
+
+# Workspace specific
+packages/*/dist/
+packages/*/build/
+packages/*/*.tsbuildinfo
