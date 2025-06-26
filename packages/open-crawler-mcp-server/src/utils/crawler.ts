@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { RobotsChecker } from './robots.js';
 import { ContentFormatter, OutputFormat } from './formatters.js';
+import { HttpConfig } from './http-config.js';
 
 export interface CrawlResult {
   url: string;
@@ -21,7 +22,6 @@ export class WebCrawler {
   private readonly robotsChecker = new RobotsChecker();
   private readonly rateLimiter = new Map<string, number>();
   private readonly maxPageSize = 10 * 1024 * 1024; // 10MB
-  private readonly userAgent = 'OpenCrawlerMCP/1.0';
 
   async crawlPage(url: string, options: CrawlOptions = {}): Promise<CrawlResult> {
     const { selector, textOnly = true, format = 'text' } = options;
@@ -40,16 +40,9 @@ export class WebCrawler {
 
     try {
       const response = await axios.get(normalizedUrl, {
-        timeout: 30000,
+        timeout: HttpConfig.DEFAULT_TIMEOUT,
         maxContentLength: this.maxPageSize,
-        headers: {
-          'User-Agent': this.userAgent,
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Accept-Encoding': 'gzip, deflate',
-          'DNT': '1',
-          'Connection': 'keep-alive'
-        }
+        headers: HttpConfig.getCrawlHeaders()
       });
 
       if (response.data.length > this.maxPageSize) {

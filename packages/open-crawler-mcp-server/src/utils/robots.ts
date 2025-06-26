@@ -1,5 +1,6 @@
 import axios from 'axios';
 import robotsParser from 'robots-parser';
+import { HttpConfig } from './http-config.js';
 
 export interface RobotsCheckResult {
   allowed: boolean;
@@ -8,7 +9,6 @@ export interface RobotsCheckResult {
 
 export class RobotsChecker {
   private robotsCache = new Map<string, any>();
-  private readonly userAgent = 'OpenCrawlerMCP/1.0';
 
   async checkRobotsTxt(url: string): Promise<RobotsCheckResult> {
     try {
@@ -20,10 +20,8 @@ export class RobotsChecker {
       if (!robots) {
         try {
           const response = await axios.get(robotsUrl, {
-            timeout: 10000,
-            headers: {
-              'User-Agent': this.userAgent
-            }
+            timeout: HttpConfig.ROBOTS_TIMEOUT,
+            headers: HttpConfig.getRobotsHeaders()
           });
           
           robots = robotsParser(robotsUrl, response.data);
@@ -34,8 +32,8 @@ export class RobotsChecker {
         }
       }
 
-      const allowed = robots.isAllowed(url, this.userAgent) !== false;
-      const crawlDelay = robots.getCrawlDelay(this.userAgent) || 1;
+      const allowed = robots.isAllowed(url, HttpConfig.USER_AGENT) !== false;
+      const crawlDelay = robots.getCrawlDelay(HttpConfig.USER_AGENT) || 1;
 
       return {
         allowed,

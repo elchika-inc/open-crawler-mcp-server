@@ -1,6 +1,8 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { WebCrawler } from '../utils/crawler.js';
 import { OutputFormat } from '../utils/formatters.js';
+import { ParameterValidator } from '../utils/validation.js';
+import { ErrorHandler } from '../utils/error-handler.js';
+import { ServiceRegistry } from '../services/service-registry.js';
 
 export const crawlPageTool: Tool = {
   name: 'crawl_page',
@@ -35,36 +37,13 @@ export const crawlPageTool: Tool = {
 export async function handleCrawlPage(args: any): Promise<any> {
   const { url, selector, text_only = true, format = 'text' } = args;
   
-  if (!url || typeof url !== 'string') {
-    throw {
-      code: -32602,
-      message: 'Invalid parameters: url is required and must be a string'
-    };
-  }
-
-  if (selector && typeof selector !== 'string') {
-    throw {
-      code: -32602,
-      message: 'Invalid parameters: selector must be a string'
-    };
-  }
-
-  if (text_only !== undefined && typeof text_only !== 'boolean') {
-    throw {
-      code: -32602,
-      message: 'Invalid parameters: text_only must be a boolean'
-    };
-  }
-
-  if (format && !['text', 'markdown', 'xml', 'json'].includes(format)) {
-    throw {
-      code: -32602,
-      message: 'Invalid parameters: format must be one of text, markdown, xml, json'
-    };
-  }
+  ParameterValidator.validateUrl(url);
+  ParameterValidator.validateSelector(selector);
+  ParameterValidator.validateBoolean(text_only, 'text_only');
+  ParameterValidator.validateFormat(format);
 
   try {
-    const crawler = new WebCrawler();
+    const crawler = ServiceRegistry.getCrawler();
     const result = await crawler.crawlPage(url, { selector, textOnly: text_only, format: format as OutputFormat });
     
     return {
@@ -78,45 +57,9 @@ export async function handleCrawlPage(args: any): Promise<any> {
     console.error('Error crawling page:', error);
     
     if (error instanceof Error) {
-      if (error.message.includes('robots.txt')) {
-        throw {
-          code: -32003,
-          message: `Robots.txt violation: ${error.message}`
-        };
-      }
-      
-      if (error.message.includes('timeout')) {
-        throw {
-          code: -32004,
-          message: `Rate limit or timeout: ${error.message}`
-        };
-      }
-      
-      if (error.message.includes('exceeds maximum limit')) {
-        throw {
-          code: -32005,
-          message: `Size exceeded: ${error.message}`
-        };
-      }
-      
-      if (error.message.includes('Network error') || error.message.includes('HTTP')) {
-        throw {
-          code: -32001,
-          message: `Network error: ${error.message}`
-        };
-      }
-      
-      if (error.message.includes('No elements found') || error.message.includes('No content')) {
-        throw {
-          code: -32002,
-          message: `Parse error: ${error.message}`
-        };
-      }
+      throw ErrorHandler.classifyError(error);
     }
     
-    throw {
-      code: -32000,
-      message: `Unknown error: ${error instanceof Error ? error.message : 'Unknown error'}`
-    };
+    throw ErrorHandler.createError(-32000, 'Unknown error');
   }
 }
