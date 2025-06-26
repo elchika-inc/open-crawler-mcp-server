@@ -1,0 +1,12 @@
+[submodule "packages/html-to-markdown"]
+	path = packages/html-to-markdown
+	url = https://github.com/elchika-inc/html-to-markdown.git
+[submodule "packages/html-to-text"]
+	path = packages/html-to-text
+	url = https://github.com/elchika-inc/html-to-text.git
+[submodule "packages/html-to-xml"]
+	path = packages/html-to-xml
+	url = https://github.com/elchika-inc/html-to-xml.git
+[submodule "packages/html-to-json"]
+	path = packages/html-to-json
+	url = https://github.com/elchika-inc/html-to-json.git
