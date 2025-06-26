@@ -1,19 +1,29 @@
 #!/usr/bin/env node
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
+import { handleCrawlPage } from './tools/crawl-page.js';
+import { handleCheckRobots } from './tools/check-robots.js';
+import { ToolErrorHandler } from './utils/tool-error-handler.js';
+import { ResponseFormatter } from './utils/response-formatter.js';
 
-import { crawlPageTool, handleCrawlPage } from './tools/crawl-page.js';
-import { checkRobotsTool, handleCheckRobots } from './tools/check-robots.js';
+// Zod schemas for tool parameters
+const crawlPageSchema = {
+  url: z.string().url().describe('The URL of the page to crawl'),
+  selector: z.string().optional().describe('Optional CSS selector to extract specific content'),
+  text_only: z.boolean().optional().default(true).describe('Whether to extract only text content (deprecated, use format instead)'),
+  format: z.enum(['text', 'markdown', 'xml', 'json']).optional().default('text').describe('Output format for the content')
+};
+
+const checkRobotsSchema = {
+  url: z.string().url().describe('The URL to check for crawling permission')
+};
 
 class WebCrawlerMCPServer {
-  private server: Server;
+  private server: McpServer;
 
   constructor() {
-    this.server = new Server(
+    this.server = new McpServer(
       {
         name: 'open-crawler-mcp-server',
         version: '1.0.0',
@@ -25,64 +35,45 @@ class WebCrawlerMCPServer {
       }
     );
 
-    this.setupHandlers();
+    this.setupTools();
   }
 
-  private setupHandlers(): void {
-    // List available tools
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      return {
-        tools: [crawlPageTool, checkRobotsTool],
-      };
-    });
-
-    // Handle tool calls
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
-
-      try {
-        switch (name) {
-          case 'crawl_page':
-            const crawlResult = await handleCrawlPage(args);
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: JSON.stringify(crawlResult, null, 2),
-                },
-              ],
-            };
-
-          case 'check_robots':
-            const robotsResult = await handleCheckRobots(args);
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: JSON.stringify(robotsResult, null, 2),
-                },
-              ],
-            };
-
-          default:
-            throw {
-              code: -32601,
-              message: `Unknown tool: ${name}`,
-            };
+  private setupTools(): void {
+    // Register crawl_page tool with enhanced metadata
+    this.server.registerTool(
+      'crawl_page',
+      {
+        title: 'Web Page Crawler',
+        description: 'Extract content from a web page in specified format (automatically checks robots.txt)',
+        inputSchema: crawlPageSchema,
+      },
+      async (args) => {
+        try {
+          const result = await handleCrawlPage(args);
+          return ResponseFormatter.formatToolResponse(result);
+        } catch (error) {
+          ToolErrorHandler.handleToolError(error);
         }
-      } catch (error) {
-        // If error is already a JSON-RPC error, re-throw it
-        if (typeof error === 'object' && error !== null && 'code' in error) {
-          throw error;
-        }
-
-        // Otherwise, wrap it in a generic error
-        throw {
-          code: -32000,
-          message: error instanceof Error ? error.message : 'Unknown error',
-        };
       }
-    });
+    );
+
+    // Register check_robots tool with enhanced metadata
+    this.server.registerTool(
+      'check_robots',
+      {
+        title: 'Robots.txt Checker',
+        description: 'Check if a URL is allowed to be crawled according to robots.txt',
+        inputSchema: checkRobotsSchema,
+      },
+      async (args) => {
+        try {
+          const result = await handleCheckRobots(args);
+          return ResponseFormatter.formatToolResponse(result);
+        } catch (error) {
+          ToolErrorHandler.handleToolError(error);
+        }
+      }
+    );
   }
 
   async run(): Promise<void> {
