@@ -1,0 +1,51 @@
+{
+  "name": "@elchika-inc/html-to-json",
+  "version": "1.0.0",
+  "description": "Convert HTML content to structured JSON format",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "test": "bun test",
+    "npm:publish": "npm publish --access public",
+    "prepublishOnly": "bun run clean && bun run build"
+  },
+  "keywords": [
+    "html",
+    "json",
+    "structured",
+    "convert",
+    "parser",
+    "cheerio"
+  ],
+  "author": "naoto24kawa",
+  "license": "MIT",
+  "homepage": "https://github.com/elchika-inc/open-crawler-mcp-server#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elchika-inc/open-crawler-mcp-server.git",
+    "directory": "packages/html-to-json"
+  },
+  "bugs": {
+    "url": "https://github.com/elchika-inc/open-crawler-mcp-server/issues"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  }
+}

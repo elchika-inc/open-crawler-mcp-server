@@ -1,12 +1,5 @@
 import * as cheerio from 'cheerio';
 
-export type OutputFormat = 'text' | 'markdown' | 'xml' | 'json';
-
-export interface FormattedContent {
-  format: OutputFormat;
-  content: string;
-}
-
 export interface StructuredContent {
   headings: Array<{ level: number; text: string }>;
   paragraphs: string[];
@@ -15,143 +8,35 @@ export interface StructuredContent {
   lists: Array<{ type: 'ordered' | 'unordered'; items: string[] }>;
 }
 
-export class ContentFormatter {
+export interface HtmlToXmlOptions {
+  includeTitle?: boolean;
+  title?: string;
+}
+
+export class HtmlToXmlConverter {
   
   /**
-   * Convert HTML content to specified format
+   * Convert HTML content to XML format
    */
-  static format(html: string, format: OutputFormat, title?: string): FormattedContent {
+  static convert(html: string, options: HtmlToXmlOptions = {}): string {
     const $ = cheerio.load(html);
-    
-    switch (format) {
-      case 'text':
-        return {
-          format: 'text',
-          content: $.text().replace(/\s+/g, ' ').trim()
-        };
-      
-      case 'markdown':
-        return {
-          format: 'markdown',
-          content: this.toMarkdown($, title)
-        };
-      
-      case 'xml':
-        return {
-          format: 'xml',
-          content: this.toXML($, title)
-        };
-      
-      case 'json':
-        return {
-          format: 'json',
-          content: JSON.stringify(this.toStructuredJSON($, title), null, 2)
-        };
-      
-      default:
-        throw new Error(`Unsupported format: ${format}`);
-    }
+    return this.toXML($, options);
   }
 
   /**
-   * Convert to Markdown format
+   * Convert to XML format with structured content
    */
-  private static toMarkdown($: cheerio.CheerioAPI, title?: string): string {
-    let markdown = '';
-    
-    // Add title if provided
-    if (title) {
-      markdown += `# ${title}\n\n`;
-    }
-    
-    // Process elements in order
-    $('body *').each((_, element) => {
-      const $el = $(element);
-      const tagName = element.tagName?.toLowerCase();
-      
-      switch (tagName) {
-        case 'h1':
-          markdown += `# ${$el.text().trim()}\n\n`;
-          break;
-        case 'h2':
-          markdown += `## ${$el.text().trim()}\n\n`;
-          break;
-        case 'h3':
-          markdown += `### ${$el.text().trim()}\n\n`;
-          break;
-        case 'h4':
-          markdown += `#### ${$el.text().trim()}\n\n`;
-          break;
-        case 'h5':
-          markdown += `##### ${$el.text().trim()}\n\n`;
-          break;
-        case 'h6':
-          markdown += `###### ${$el.text().trim()}\n\n`;
-          break;
-        case 'p':
-          const pText = $el.text().trim();
-          if (pText) {
-            markdown += `${pText}\n\n`;
-          }
-          break;
-        case 'a':
-          const href = $el.attr('href');
-          const linkText = $el.text().trim();
-          if (href && linkText) {
-            markdown += `[${linkText}](${href})`;
-          }
-          break;
-        case 'img':
-          const src = $el.attr('src');
-          const alt = $el.attr('alt') || '';
-          if (src) {
-            markdown += `![${alt}](${src})\n\n`;
-          }
-          break;
-        case 'ul':
-          $el.find('li').each((_, li) => {
-            markdown += `- ${$(li).text().trim()}\n`;
-          });
-          markdown += '\n';
-          break;
-        case 'ol':
-          $el.find('li').each((i, li) => {
-            markdown += `${i + 1}. ${$(li).text().trim()}\n`;
-          });
-          markdown += '\n';
-          break;
-        case 'blockquote':
-          const quoteText = $el.text().trim();
-          if (quoteText) {
-            markdown += `> ${quoteText}\n\n`;
-          }
-          break;
-        case 'code':
-          markdown += `\`${$el.text()}\``;
-          break;
-        case 'pre':
-          markdown += `\`\`\`\n${$el.text()}\n\`\`\`\n\n`;
-          break;
-      }
-    });
-    
-    return markdown.trim();
-  }
-
-  /**
-   * Convert to XML format
-   */
-  private static toXML($: cheerio.CheerioAPI, title?: string): string {
+  private static toXML($: cheerio.CheerioAPI, options: HtmlToXmlOptions): string {
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += '<document>\n';
     
-    if (title) {
-      xml += `  <title><![CDATA[${title}]]></title>\n`;
+    if (options.includeTitle && options.title) {
+      xml += `  <title><![CDATA[${options.title}]]></title>\n`;
     }
     
     xml += '  <content>\n';
     
-    // Extract structured content
+    // Extract structured content using the same logic as JSON converter
     const structured = this.extractStructuredContent($);
     
     // Add headings
@@ -210,19 +95,7 @@ export class ContentFormatter {
   }
 
   /**
-   * Convert to structured JSON format
-   */
-  private static toStructuredJSON($: cheerio.CheerioAPI, title?: string): any {
-    const structured = this.extractStructuredContent($);
-    
-    return {
-      title: title || null,
-      content: structured
-    };
-  }
-
-  /**
-   * Extract structured content from HTML
+   * Extract structured content from HTML (reuse logic from JSON converter)
    */
   private static extractStructuredContent($: cheerio.CheerioAPI): StructuredContent {
     const headings: Array<{ level: number; text: string }> = [];
