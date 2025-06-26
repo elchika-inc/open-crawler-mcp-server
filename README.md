@@ -10,7 +10,7 @@ A Model Context Protocol (MCP) server for web crawling and content extraction fr
 ## Features
 
 - **Multiple Output Formats**: Extract content as text, markdown, structured XML, or JSON
-- **Smart Content Extraction**: CSS selector support for targeted content extraction  
+- **Smart Content Extraction**: CSS selector support for targeted content extraction
 - **Robots.txt Compliance**: Automatic robots.txt checking and compliance
 - **Rate Limiting**: Built-in rate limiting (1 second minimum between requests)
 - **Size Protection**: Maximum page size limit (10MB) to prevent memory issues
@@ -26,7 +26,7 @@ Add this server to your MCP client configuration:
   "mcpServers": {
     "open-crawler": {
       "command": "npx",
-      "args": ["open-crawler-mcp-server"]
+      "args": ["@elchika-inc/open-crawler-mcp-server"]
     }
   }
 }
@@ -39,6 +39,7 @@ Add this server to your MCP client configuration:
 Extracts content from a web page in multiple formats with automatic robots.txt compliance checking.
 
 **Parameters:**
+
 - `url` (required): Target URL to crawl
 - `selector` (optional): CSS selector for specific content extraction
 - `format` (optional): Output format - `text`, `markdown`, `xml`, or `json` (default: `text`)
@@ -54,6 +55,7 @@ Extracts content from a web page in multiple formats with automatic robots.txt c
 **Examples:**
 
 Basic text extraction:
+
 ```json
 {
   "name": "crawl_page",
@@ -65,6 +67,7 @@ Basic text extraction:
 ```
 
 Markdown extraction with CSS selector:
+
 ```json
 {
   "name": "crawl_page",
@@ -77,6 +80,7 @@ Markdown extraction with CSS selector:
 ```
 
 Structured JSON extraction:
+
 ```json
 {
   "name": "crawl_page",
@@ -92,9 +96,11 @@ Structured JSON extraction:
 Validates if a URL is allowed to be crawled according to the site's robots.txt file.
 
 **Parameters:**
+
 - `url` (required): URL to check for crawling permission
 
 **Example:**
+
 ```json
 {
   "name": "check_robots",
@@ -107,8 +113,9 @@ Validates if a URL is allowed to be crawled according to the site's robots.txt f
 ## Error Handling
 
 Common error scenarios:
+
 - Network connection issues
-- Invalid HTML or missing content  
+- Invalid HTML or missing content
 - Robots.txt restrictions
 - Request timeouts or rate limits
 - Content size too large (>10MB)
