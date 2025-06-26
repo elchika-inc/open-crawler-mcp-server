@@ -1,77 +1,95 @@
 # Open Crawler MCP Server
 
-[![license](https://img.shields.io/npm/l/open-crawler-mcp-server)](https://github.com/naoto24kawa/open-clawler-mcp-server/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/open-crawler-mcp-server)](https://github.com/elchika-inc/open-crawler-mcp-server/blob/main/LICENSE)
 [![npm version](https://img.shields.io/npm/v/open-crawler-mcp-server)](https://www.npmjs.com/package/open-crawler-mcp-server)
 [![npm downloads](https://img.shields.io/npm/dm/open-crawler-mcp-server)](https://www.npmjs.com/package/open-crawler-mcp-server)
-[![GitHub stars](https://img.shields.io/github/stars/naoto24kawa/open-clawler-mcp-server)](https://github.com/naoto24kawa/open-clawler-mcp-server)
+[![GitHub stars](https://img.shields.io/github/stars/elchika-inc/open-crawler-mcp-server)](https://github.com/elchika-inc/open-crawler-mcp-server)
 
-A Model Context Protocol (MCP) server for web crawling and text extraction from web pages.
+A Model Context Protocol (MCP) server for web crawling and content extraction from web pages with multiple output formats.
 
 ## Features
 
-- **crawl_page**: Extract text content from web pages with optional CSS selectors
-- **check_robots**: Check robots.txt compliance before crawling
-- Rate limiting and robots.txt compliance
-- Maximum page size protection (10MB)
-- Support for both text-only and HTML extraction
+- **Multiple Output Formats**: Extract content as text, markdown, structured XML, or JSON
+- **Smart Content Extraction**: CSS selector support for targeted content extraction  
+- **Robots.txt Compliance**: Automatic robots.txt checking and compliance
+- **Rate Limiting**: Built-in rate limiting (1 second minimum between requests)
+- **Size Protection**: Maximum page size limit (10MB) to prevent memory issues
+- **Structured Content**: Extract headings, paragraphs, links, images, and lists separately
+- **Error Handling**: Comprehensive error codes for different failure scenarios
 
-## Installation
+## MCP Client Configuration
 
-### Using npx (Recommended)
+Add this server to your MCP client configuration:
 
-```bash
-# Run directly without installation
-npx open-crawler-mcp-server
+```json
+{
+  "mcpServers": {
+    "open-crawler": {
+      "command": "npx",
+      "args": ["open-crawler-mcp-server"]
+    }
+  }
+}
 ```
 
-### Local Installation
+## Available Tools
 
-```bash
-npm install -g open-crawler-mcp-server
-```
+### crawl_page
 
-
-## Usage
-
-### Running with npx
-
-```bash
-npx open-crawler-mcp-server
-```
-
-### Running locally
-
-```bash
-# After global installation
-open-crawler-mcp-server
-```
-
-### Available Tools
-
-#### crawl_page
-
-Extracts text content from a web page.
+Extracts content from a web page in multiple formats with automatic robots.txt compliance checking.
 
 **Parameters:**
 - `url` (required): Target URL to crawl
 - `selector` (optional): CSS selector for specific content extraction
-- `text_only` (optional): Extract only text content (default: true)
+- `format` (optional): Output format - `text`, `markdown`, `xml`, or `json` (default: `text`)
+- `text_only` (optional): Legacy parameter for text-only extraction (deprecated, use `format` instead)
 
-**Example:**
+**Output Formats:**
+
+- **`text`**: Clean, plain text content with whitespace normalized
+- **`markdown`**: Well-formatted Markdown with headings, links, images, and lists preserved
+- **`xml`**: Structured XML with separate sections for headings, paragraphs, links, images, and lists
+- **`json`**: Structured JSON object containing categorized content elements
+
+**Examples:**
+
+Basic text extraction:
+```json
+{
+  "name": "crawl_page",
+  "arguments": {
+    "url": "https://example.com",
+    "format": "text"
+  }
+}
+```
+
+Markdown extraction with CSS selector:
 ```json
 {
   "name": "crawl_page",
   "arguments": {
     "url": "https://example.com",
     "selector": "article",
-    "text_only": true
+    "format": "markdown"
   }
 }
 ```
 
-#### check_robots
+Structured JSON extraction:
+```json
+{
+  "name": "crawl_page",
+  "arguments": {
+    "url": "https://example.com",
+    "format": "json"
+  }
+}
+```
 
-Check if a URL is allowed to be crawled according to robots.txt.
+### check_robots
+
+Validates if a URL is allowed to be crawled according to the site's robots.txt file.
 
 **Parameters:**
 - `url` (required): URL to check for crawling permission
@@ -86,62 +104,14 @@ Check if a URL is allowed to be crawled according to robots.txt.
 }
 ```
 
-## Configuration
+## Error Handling
 
-### MCP Client Configuration
-
-To use this server with Claude Desktop or other MCP clients, add the following configuration to your MCP client settings (e.g., `.mcp.json` or Claude Desktop configuration):
-
-```json
-{
-  "mcpServers": {
-    "open-crawler": {
-      "command": "npx",
-      "args": ["open-crawler-mcp-server"]
-    }
-  }
-}
-```
-
-For local development or global installation:
-
-```json
-{
-  "mcpServers": {
-    "open-crawler": {
-      "command": "open-crawler-mcp-server"
-    }
-  }
-}
-```
-
-### Server Settings
-
-The server automatically:
-- Respects robots.txt files
-- Applies rate limiting (minimum 1 second between requests)
-- Limits page size to 10MB
-- Prefers HTTPS connections
-- Uses appropriate User-Agent string
-
-## Error Codes
-
-- `-32001`: Network error
-- `-32002`: Parse error
-- `-32003`: Robots.txt violation
-- `-32004`: Rate limit or timeout
-- `-32005`: Page size exceeded
-
-## Architecture
-
-All crawling operations are performed locally on the MCP server to minimize AI token consumption. The server handles:
-
-- HTTP/HTTPS requests
-- HTML parsing and text extraction
-- Robots.txt parsing and compliance
-- Rate limiting management
-- Error handling
-
+Common error scenarios:
+- Network connection issues
+- Invalid HTML or missing content  
+- Robots.txt restrictions
+- Request timeouts or rate limits
+- Content size too large (>10MB)
 
 ## License
 
