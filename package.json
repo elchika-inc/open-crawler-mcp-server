@@ -1,6 +1,6 @@
 {
   "name": "@elchika-inc/open-crawler-mcp-server",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Web crawler MCP server for extracting text content from web pages",
   "main": "dist/src/index.js",
   "type": "module",
