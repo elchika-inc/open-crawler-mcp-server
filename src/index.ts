@@ -87,9 +87,17 @@ class WebCrawlerMCPServer {
 
   async run(): Promise<void> {
     const transport = new StdioServerTransport();
-    await this.server.connect(transport);
     
-    console.error('Open Crawler MCP Server running on stdio');
+    try {
+      await this.server.connect(transport);
+      console.error('Open Crawler MCP Server running on stdio');
+      
+      // Keep the process alive
+      process.stdin.resume();
+    } catch (error) {
+      console.error('Failed to connect transport:', error);
+      process.exit(1);
+    }
   }
 }
 
