@@ -22,22 +22,12 @@ export interface CrawlOptions {
 }
 
 export class WebCrawler {
-  private readonly robotsChecker: RobotsChecker;
-  private readonly rateLimiter: RateLimiter;
-  private readonly contentExtractor: ContentExtractor;
-
-  constructor(
-    robotsChecker?: RobotsChecker,
-    rateLimiter?: RateLimiter,
-    contentExtractor?: ContentExtractor
-  ) {
-    this.robotsChecker = robotsChecker || new RobotsChecker();
-    this.rateLimiter = rateLimiter || new RateLimiter();
-    this.contentExtractor = contentExtractor || new ContentExtractor();
-  }
+  private readonly robotsChecker = new RobotsChecker();
+  private readonly rateLimiter = new RateLimiter();
+  private readonly contentExtractor = new ContentExtractor();
 
   async crawlPage(url: string, options: CrawlOptions = {}): Promise<CrawlResult> {
-    const { selector, textOnly = true, format = 'text' } = options;
+    const { selector, format = 'text' } = options;
 
     // Normalize URL to HTTPS if possible
     const normalizedUrl = URLNormalizer.normalize(url);
@@ -57,7 +47,7 @@ export class WebCrawler {
         headers: HttpConfig.getCrawlHeaders()
       });
 
-      // Extract content using the dedicated extractor
+      // Extract content
       const extractedContent = this.contentExtractor.extractContent(response.data, { selector });
 
       // Convert content to requested format

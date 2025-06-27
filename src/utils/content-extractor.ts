@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { ParseError, SizeExceededError } from './error-handler.js';
+import { ParseError } from './error-handler.js';
 
 export interface ExtractionOptions {
   selector?: string;
@@ -12,12 +12,12 @@ export interface ExtractedContent {
 }
 
 /**
- * Content extractor for web pages
+ * Simple content extractor for web pages
  */
 export class ContentExtractor {
   private readonly maxSizeBytes: number;
 
-  constructor(maxSizeBytes: number = 10 * 1024 * 1024) { // 10MB default
+  constructor(maxSizeBytes: number = 1024 * 1024) { // 1MB default
     this.maxSizeBytes = maxSizeBytes;
   }
 
@@ -25,26 +25,23 @@ export class ContentExtractor {
    * Extract content from HTML
    */
   extractContent(html: string, options: ExtractionOptions = {}): ExtractedContent {
-    // Check size limit
-    if (html.length > this.maxSizeBytes) {
-      throw new SizeExceededError(`Content size (${html.length} bytes) exceeds maximum limit of ${this.maxSizeBytes} bytes`);
-    }
-
+    const { selector } = options;
+    
     try {
       const $ = cheerio.load(html);
       
       // Remove unwanted elements
-      $('script, style, nav, header, footer, aside').remove();
+      $('script, style, noscript, nav, footer, header, aside').remove();
       
       // Extract title
       const title = $('title').text() || $('h1').first().text() || 'Untitled';
       
       // Extract content based on selector
       let content: string;
-      if (options.selector) {
-        const selectedElements = $(options.selector);
+      if (selector) {
+        const selectedElements = $(selector);
         if (selectedElements.length === 0) {
-          throw new ParseError(`No elements found for selector: ${options.selector}`);
+          throw new ParseError(`No elements found for selector: ${selector}`);
         }
         content = selectedElements.text().trim();
       } else {
@@ -57,12 +54,17 @@ export class ContentExtractor {
         throw new ParseError('No content found on the page');
       }
 
+      // Simple truncation if content exceeds size limit
+      if (content.length > this.maxSizeBytes) {
+        content = content.substring(0, this.maxSizeBytes) + '...';
+      }
+
       return {
         title: title.trim(),
         content
       };
     } catch (error) {
-      if (error instanceof ParseError || error instanceof SizeExceededError) {
+      if (error instanceof ParseError) {
         throw error;
       }
       throw new ParseError(`Failed to extract content: ${error instanceof Error ? error.message : 'Unknown error'}`);

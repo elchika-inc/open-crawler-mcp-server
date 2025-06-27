@@ -1,23 +1,9 @@
 #!/usr/bin/env node
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod';
-import { handleCrawlPage } from './tools/crawl-page.js';
-import { handleCheckRobots } from './tools/check-robots.js';
-import { ToolErrorHandler } from './utils/tool-error-handler.js';
-import { ResponseFormatter } from './utils/response-formatter.js';
-
-// Zod schemas for tool parameters
-const crawlPageSchema = {
-  url: z.string().url().describe('The URL of the page to crawl'),
-  selector: z.string().optional().describe('Optional CSS selector to extract specific content'),
-  text_only: z.boolean().optional().default(true).describe('Whether to extract only text content (deprecated, use format instead)'),
-  format: z.enum(['text', 'markdown', 'xml', 'json']).optional().default('text').describe('Output format for the content')
-};
-
-const checkRobotsSchema = {
-  url: z.string().url().describe('The URL to check for crawling permission')
-};
+import { handleCrawlPage, crawlPageTool } from './tools/crawl-page.js';
+import { handleCheckRobots, checkRobotsTool } from './tools/check-robots.js';
+import { ErrorHandler } from './utils/error-handler.js';
 
 class WebCrawlerMCPServer {
   private server: McpServer;
@@ -39,41 +25,28 @@ class WebCrawlerMCPServer {
   }
 
   private setupTools(): void {
-    // Register crawl_page tool with enhanced metadata
-    this.server.registerTool(
-      'crawl_page',
-      {
-        title: 'Web Page Crawler',
-        description: 'Extract content from a web page in specified format (automatically checks robots.txt)',
-        inputSchema: crawlPageSchema,
-      },
-      async (args) => {
-        try {
-          const result = await handleCrawlPage(args);
-          return ResponseFormatter.formatToolResponse(result);
-        } catch (error) {
-          ToolErrorHandler.handleToolError(error);
-        }
-      }
-    );
+    const tools = [
+      { tool: crawlPageTool, handler: handleCrawlPage },
+      { tool: checkRobotsTool, handler: handleCheckRobots }
+    ];
 
-    // Register check_robots tool with enhanced metadata
-    this.server.registerTool(
-      'check_robots',
-      {
-        title: 'Robots.txt Checker',
-        description: 'Check if a URL is allowed to be crawled according to robots.txt',
-        inputSchema: checkRobotsSchema,
-      },
-      async (args) => {
-        try {
-          const result = await handleCheckRobots(args);
-          return ResponseFormatter.formatToolResponse(result);
-        } catch (error) {
-          ToolErrorHandler.handleToolError(error);
+    tools.forEach(({ tool, handler }) => {
+      this.server.registerTool(
+        tool.name,
+        {
+          description: tool.description,
+          inputSchema: tool.inputSchema as any,
+        },
+        async (args: any) => {
+          try {
+            const result = await handler(args);
+            return ErrorHandler.formatToolResponse(result);
+          } catch (error) {
+            ErrorHandler.handleToolError(error);
+          }
         }
-      }
-    );
+      );
+    });
   }
 
   async run(): Promise<void> {

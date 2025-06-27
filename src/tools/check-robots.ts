@@ -1,22 +1,25 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ParameterValidator } from '../utils/validation.js';
 import { ErrorHandler } from '../utils/error-handler.js';
-import { ServiceRegistry } from '../services/service-registry.js';
+import { RobotsChecker } from '../utils/robots.js';
 
-export const checkRobotsTool: Tool = {
+export const checkRobotsSchema = {
+  type: 'object' as const,
+  properties: {
+    url: {
+      type: 'string' as const,
+      description: 'The URL to check for crawling permission'
+    }
+  },
+  required: ['url'] as const
+};
+
+export const checkRobotsTool = {
   name: 'check_robots',
   description: 'Check if a URL is allowed to be crawled according to robots.txt',
-  inputSchema: {
-    type: 'object',
-    properties: {
-      url: {
-        type: 'string',
-        description: 'The URL to check for crawling permission'
-      }
-    },
-    required: ['url']
-  }
+  inputSchema: checkRobotsSchema
 };
+
+const robotsChecker = new RobotsChecker();
 
 export async function handleCheckRobots(args: any): Promise<any> {
   const { url } = args;
@@ -24,7 +27,6 @@ export async function handleCheckRobots(args: any): Promise<any> {
   ParameterValidator.validateUrl(url);
 
   try {
-    const robotsChecker = ServiceRegistry.getRobotsChecker();
     const result = await robotsChecker.checkRobotsTxt(url);
     
     return {

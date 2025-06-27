@@ -1,38 +1,41 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { OutputFormat } from '../utils/formatters.js';
 import { ParameterValidator } from '../utils/validation.js';
 import { ErrorHandler } from '../utils/error-handler.js';
-import { ServiceRegistry } from '../services/service-registry.js';
+import { WebCrawler } from '../utils/crawler.js';
 
-export const crawlPageTool: Tool = {
+export const crawlPageSchema = {
+  type: 'object' as const,
+  properties: {
+    url: {
+      type: 'string' as const,
+      description: 'The URL of the page to crawl'
+    },
+    selector: {
+      type: 'string' as const,
+      description: 'Optional CSS selector to extract specific content'
+    },
+    text_only: {
+      type: 'boolean' as const,
+      description: 'Whether to extract only text content (deprecated, use format instead)',
+      default: true
+    },
+    format: {
+      type: 'string' as const,
+      enum: ['text', 'markdown', 'xml', 'json'] as const,
+      description: 'Output format for the content (default: text)',
+      default: 'text'
+    }
+  },
+  required: ['url'] as const
+};
+
+export const crawlPageTool = {
   name: 'crawl_page',
   description: 'Extract content from a web page in specified format (automatically checks robots.txt)',
-  inputSchema: {
-    type: 'object',
-    properties: {
-      url: {
-        type: 'string',
-        description: 'The URL of the page to crawl'
-      },
-      selector: {
-        type: 'string',
-        description: 'Optional CSS selector to extract specific content'
-      },
-      text_only: {
-        type: 'boolean',
-        description: 'Whether to extract only text content (deprecated, use format instead)',
-        default: true
-      },
-      format: {
-        type: 'string',
-        enum: ['text', 'markdown', 'xml', 'json'],
-        description: 'Output format for the content (default: text)',
-        default: 'text'
-      }
-    },
-    required: ['url']
-  }
+  inputSchema: crawlPageSchema
 };
+
+const crawler = new WebCrawler();
 
 export async function handleCrawlPage(args: any): Promise<any> {
   const { url, selector, text_only = true, format = 'text' } = args;
@@ -43,7 +46,6 @@ export async function handleCrawlPage(args: any): Promise<any> {
   ParameterValidator.validateFormat(format);
 
   try {
-    const crawler = ServiceRegistry.getCrawler();
     const result = await crawler.crawlPage(url, { selector, textOnly: text_only, format: format as OutputFormat });
     
     return {
