@@ -12,7 +12,7 @@ class WebCrawlerMCPServer {
     this.server = new McpServer(
       {
         name: 'open-crawler-mcp-server',
-        version: '1.0.0',
+        version: '0.2.2',
       },
       {
         capabilities: {

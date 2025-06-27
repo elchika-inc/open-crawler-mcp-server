@@ -34,7 +34,6 @@ export async function handleCheckRobots(args: any): Promise<any> {
       crawl_delay: result.crawlDelay
     };
   } catch (error) {
-    console.error('Error checking robots.txt:', error);
     throw ErrorHandler.createError(
       -32001,
       `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`

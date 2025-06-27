@@ -27,7 +27,6 @@ export class RobotsChecker {
           robots = robotsParser(robotsUrl, response.data);
           this.robotsCache.set(urlObj.host, robots);
         } catch (error) {
-          console.warn(`Failed to fetch robots.txt for ${urlObj.host}:`, error);
           return { allowed: true, crawlDelay: 1 };
         }
       }
@@ -40,7 +39,6 @@ export class RobotsChecker {
         crawlDelay: Math.max(crawlDelay, 1)
       };
     } catch (error) {
-      console.error('Error checking robots.txt:', error);
       return { allowed: false, crawlDelay: 1 };
     }
   }

@@ -14,11 +14,6 @@ export const crawlPageSchema = {
       type: 'string' as const,
       description: 'Optional CSS selector to extract specific content'
     },
-    text_only: {
-      type: 'boolean' as const,
-      description: 'Whether to extract only text content (deprecated, use format instead)',
-      default: true
-    },
     format: {
       type: 'string' as const,
       enum: ['text', 'markdown', 'xml', 'json'] as const,
@@ -38,15 +33,14 @@ export const crawlPageTool = {
 const crawler = new WebCrawler();
 
 export async function handleCrawlPage(args: any): Promise<any> {
-  const { url, selector, text_only = true, format = 'text' } = args;
+  const { url, selector, format = 'text' } = args;
   
   ParameterValidator.validateUrl(url);
   ParameterValidator.validateSelector(selector);
-  ParameterValidator.validateBoolean(text_only, 'text_only');
   ParameterValidator.validateFormat(format);
 
   try {
-    const result = await crawler.crawlPage(url, { selector, textOnly: text_only, format: format as OutputFormat });
+    const result = await crawler.crawlPage(url, { selector, format: format as OutputFormat });
     
     return {
       url: result.url,
@@ -56,7 +50,6 @@ export async function handleCrawlPage(args: any): Promise<any> {
       timestamp: result.timestamp
     };
   } catch (error) {
-    console.error('Error crawling page:', error);
     
     if (error instanceof Error) {
       throw ErrorHandler.classifyError(error);

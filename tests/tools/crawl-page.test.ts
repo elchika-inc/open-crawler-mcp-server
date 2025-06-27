@@ -45,15 +45,15 @@ describe('crawl-page tool', () => {
     }
   });
 
-  test('should validate text_only parameter type', async () => {
+  test('should validate format parameter type', async () => {
     const { handleCrawlPage } = require('../../src/tools/crawl-page.js');
     
     try {
-      await handleCrawlPage({ url: 'https://example.com', text_only: 'invalid' });
+      await handleCrawlPage({ url: 'https://example.com', format: 'invalid' });
       expect(false).toBe(true); // Should not reach here
     } catch (error: any) {
       expect(error.code).toBe(-32602);
-      expect(error.message).toContain('text_only must be a boolean');
+      expect(error.message).toContain('format must be one of');
     }
   });
 });

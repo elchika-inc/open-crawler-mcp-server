@@ -3,17 +3,19 @@
  */
 export class URLNormalizer {
   /**
-   * Normalize URL by ensuring HTTPS and proper format
+   * Normalize URL by ensuring proper format
+   * @param url - The URL to normalize
+   * @param forceHttps - Whether to force HTTPS (default: false)
    */
-  static normalize(url: string): string {
+  static normalize(url: string, forceHttps: boolean = false): string {
     try {
       // If URL doesn't start with protocol, assume https
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
         url = 'https://' + url;
       }
       
-      // Convert http to https for better security
-      if (url.startsWith('http://')) {
+      // Convert http to https only if forceHttps is true
+      if (forceHttps && url.startsWith('http://')) {
         url = url.replace('http://', 'https://');
       }
       
